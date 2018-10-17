@@ -1,63 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
-    <style>
-        *{
-            padding: 0;
-            margin: 0;
-        }
-        .form-wrapper>form{
-            display: flex;
-            align-content: center;
-            flex-direction: column;
-        }
-        .form-wrapper{
-            max-width: 300px;
-            border: 1px solid black;
-            margin: 100px auto;
-        }
-        .form-wrapper>form>div>label{
-            display: inline-block;
-            width: 4em;
-        }
-        .form-wrapper>form>div{
-            padding: 10px;
-        }
-    </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <title>首页</title>
 </head>
-
 <body>
-    <div class="form-wrapper">
-        <h1>注册</h1>
-        <form action="" method="POST" id="signUpform">
-            <div><label for="email">邮箱</label><input type="text" name="email" id="email"></div>
-            <div><label for="password">密码</label><input type="password" name="password" id="password"></div>
-            <div><label for="password_confirmation">确认密码</label><input type="password" name="password_confirmation" id="password_confirmation"></div>
-            <div><input type="submit" value="注册"></div>   
-        </form>
-    </div>
+    <h1>这里是首页</h1>
+    <a href="./loginUp.html">点击到注册页面</a>
+    <a href="./loginIn.html">点击登录页面</a>
+    <h2>欢迎你:~~xxx ,你的密码是:~~password</h2>
 </body>
-<script>
-    let hash={}
-    $("#signUpform").on("submit",function(e){
-        e.preventDefault()
-        let need=["email","password","password_confirmation"]
-        need.forEach(function(name){
-            let value=$("#signUpform").find(`[name=${name}]`).val()
-            hash[name]=value
-        })
-        $.post('/sign_up',hash).then(function(response){
-            console.log(response)
-        },function(a){
-            alert(a.responseText)
-        } )
-    })
-</script>
-
 </html>

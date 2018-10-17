@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>注册</title>
+    <style>
+        *{
+            padding: 0;
+            margin: 0;
+        }
+        .form-wrapper>form{
+            display: flex;
+            align-content: center;
+            flex-direction: column;
+        }
+        .form-wrapper{
+            max-width: 400px;
+            border: 1px solid black;
+            margin: 100px auto;
+        }
+        .form-wrapper>form>div>label{
+            display: inline-block;
+            width: 4em;
+        }
+        .form-wrapper>form>div{
+            padding: 10px;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+</head>
+
+<body>
+    <div class="form-wrapper">
+        <h1>注册</h1>
+        <form action="" method="POST" id="signUpform">
+            <div><label for="email">邮箱</label><input type="text" name="email" id="email"><span class="error"></span></div>
+            <div><label for="password">密码</label><input type="password" name="password" id="password"><span class="error"></span></div>
+            <div><label for="password_confirmation">确认密码</label><input type="password" name="password_confirmation" id="password_confirmation"><span class="error"></span></div>
+            <div><input type="submit" value="注册"></div>   
+        </form>
+    </div>
+</body>
+<script>
+    let hash={}
+    $("#signUpform").on("submit",function(e){
+        e.preventDefault()
+        let need=["email","password","password_confirmation"]
+        need.forEach(function(name){
+            let value=$("#signUpform").find(`[name=${name}]`).val()
+            hash[name]=decodeURIComponent(value)
+        })
+        $(".error").each((index,span)=>{
+            $(span).text("")
+        })
+        if(hash['email']===""){
+           $(".error")[0].innerText="请写邮箱同学"
+           return 
+        }
+        if(hash['password']===""){
+           $(".error")[1].innerText="请写密码同学"
+           return 
+        }
+        if(hash['password_confirmation']===""){
+           $(".error")[2].innerText="请写密码同学"
+           return 
+        }
+        if(hash['password']!==hash['password_confirmation']){
+           $(".error")[2].innerText="两次输入的密码不同啊~"
+           return 
+        }
+        $.post('/sign_up',hash).then(function(response){
+            console.log(response)
+        },function(a){
+            // let object=JSON.parse(a.responseText)
+            // let errors=object.errors
+            // let {errors}=JSON.parse(a.responseJSON)
+            let {errors}=a.responseJSON
+            // console.log(errors)
+            // console.log(a.responseJSON)
+            if(errors.email&&errors.email==="invalid"){
+                $(".error")[0].innerText="邮箱错啦拉拉"
+            }
+        } )
+    })
+</script>
+
+</html>

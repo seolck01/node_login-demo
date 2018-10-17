@@ -25,9 +25,53 @@ var server = http.createServer(function (request, response) {
     let string = fs.readFileSync('./index.html', 'utf-8')
     response.statusCode = 200
     response.setHeader('Content-Type', 'text/html;charset=utf-8')
+    // console.log(request.headers.cookie)
+    let cookies = request.headers.cookie.split(';')
+    // console.log(cookies)  [ 'sign_in_email=1@qq.com' ]
+    let hash={}
+    for(let i=0;i<cookies.length;i++){
+      let parts=cookies[i].split("=")
+      let key=parts[0]
+      let value=parts[1]
+      hash[key]=value
+    }
+    let email=hash.sign_in_email
+    let user=fs.readFileSync('./db/user',"utf8")
+    user=JSON.parse(user)
+    // console.log(user)
+    let foundUser=null
+    for(let i =0; i<user.length;i++){
+      if(user[i].email===email){
+        foundUser=user[i]
+        console.log(foundUser)
+        break;
+      }
+    }
+    if(foundUser){
+      string=string.replace("~~password",foundUser.password)
+      string=string.replace("~~xxx",foundUser.email)
+    }else{
+      string=string.replace("~~password","你是谁啊")
+      string=string.replace("~~xxx","我管你密码多少")
+    }
+
+ 
     response.write(string)
     response.end()
-  } else if (path === "/name") {
+  } else if (path === "/loginUp.html" && method === "GET") {
+    response.statusCode = 200
+    response.setHeader('Content-Type', 'text/html;utf8')
+    let string = fs.readFileSync('./loginUp.html')
+    response.write(string)
+    response.end()
+  } else if (path === "/loginIn.html" && method === "GET") {
+    response.statusCode = 200
+    response.setHeader('Content-Type', 'text/html;utf8')
+    let string = fs.readFileSync('./loginIn.html')
+    response.write(string)
+    response.end()
+  }
+  else if (path === "/name") {
     response.statusCode = 200
     response.setHeader('Content-Type', 'text/css;charset=utf-8')
     response.write("hi")
@@ -40,17 +84,86 @@ var server = http.createServer(function (request, response) {
         let parts = string.split("=")
         let key = parts[0]
         let value = parts[1]
-        hash[key] = value
+        // hash[key] = value
+        hash[key] = decodeURIComponent(value)
       })
-      let {email, password, password_confirmation} = hash
+      let { email, password, password_confirmation } = hash
+
       if (email.indexOf("@") === -1) {
+        response.setHeader("Content-Type", "application/json;charset=utf-8")
         response.statusCode = 400
-        response.write("email is wrong")
+        response.write(`{"errors":{"email":"invalid"}}`)
       } else if (password !== password_confirmation) {
         response.statusCode = 400
         response.write("password not match")
       } else {
-        response.statusCode = 200
+        var user = fs.readFileSync('./db/user', 'utf8')
+        try {
+          user = JSON.parse(user)
+        } catch (exception) {
+          user = []
+        }
+        var inUser = false
+        for (let i = 0; i < user.length; i++) {
+          let person = user[i];
+          if (person.email = email) {
+            inUser = true
+            break;
+          }
+        }
+        if (inUser) {
+          response.statusCode = 400
+          response.write('email is used')
+        } else {
+          user.push({ email: email, password: password })
+          var userStr = JSON.stringify(user)
+          fs.writeFileSync('./db/user', userStr)
+          response.statusCode = 200
+        }
+      }
+      response.end()
+    })
+  } else if (path === '/sign_in' && method === "POST") {
+    readBody(request).then((body) => {
+      let strings = body.split("&")
+      let hash = {}
+      strings.forEach(function (string) {
+        let parts = string.split("=")
+        let key = parts[0]
+        let value = parts[1]
+        // hash[key] = value
+        hash[key] = decodeURIComponent(value)
+      })
+      let { email, password } = hash
+
+      if (email.indexOf("@") === -1) {
+        response.setHeader("Content-Type", "application/json;charset=utf-8")
+        response.statusCode = 400
+        response.write(`{"errors":{"email":"invalid"}}`)
+      }
+      else {
+        var user = fs.readFileSync('./db/user', 'utf8')
+        try {
+          user = JSON.parse(user)
+        } catch (exception) {
+          user = []
+        }
+        var inUser = 0
+        for (let i = 0; i < user.length; i++) {
+          let person = user[i];
+          if (person.email === email && person.password === password) {
+            inUser = 1
+            response.setHeader('Content-Type', 'text/html;charset=utf-8')
+            response.setHeader("set-Cookie", `sign_in_email=${email}`)   /* ,sign_in_password=${password} */
+            response.write("登录成功")
+            response.statusCode = 200
+            break;
+          }
+        }
+        if (inUser === false) {
+          response.statusCode = 400
+          response.write('email is unregistered')
+        }
       }
       response.end()
     })
